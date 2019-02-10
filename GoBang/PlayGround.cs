@@ -9,13 +9,20 @@ namespace GoBang
         private const char BlackChessman = 'B';
         private const char WhiteChessman = 'W';
         private const char Empty = '—';
-        public bool IsWhiteGo = true;
+        public bool IsWhiteGo;
 
         public PlayGround()
         {
+            RandomizeFirst();
             for (var i = 0; i < 15; i++)
                 for (var j = 0; j < 15; j++)
                     _chessBoard[i, j] = new Point(i, j, Chessman.Empty);
+        }
+
+        private void RandomizeFirst()
+        {
+            var rnd = new Random().Next(2);
+            IsWhiteGo = rnd == 0;
         }
 
         public Winner Check(Point coordinate)
@@ -30,9 +37,9 @@ namespace GoBang
             for (var i = 14; i >= 0; i--)
             {
                 for (var j = 0; j < 15; j++)
-                    stringBuilder.Append(_chessBoard[i, j].Chessman == Chessman.Black
+                    stringBuilder.Append(_chessBoard[j, i].Chessman == Chessman.Black
                         ? BlackChessman
-                        : _chessBoard[i, j].Chessman == Chessman.White
+                        : _chessBoard[j, i].Chessman == Chessman.White
                             ? WhiteChessman
                             : Empty);
                 stringBuilder.AppendLine();

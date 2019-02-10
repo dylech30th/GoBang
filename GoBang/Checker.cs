@@ -69,7 +69,7 @@ namespace GoBang
 
             up = coordinate;
             // check the left side from self's coordinate
-            while (up.X >= 0 && up.Y >= 0 && up.Chessman == Chessman.White)
+            while (up.X >= 0 && up.Y >= 0 && up.Chessman == chessman)
             {
                 if (count == 5)
                     return chessman == Chessman.White ? Winner.White : Winner.Black;
