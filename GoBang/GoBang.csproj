@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="Checker.cs" />
     <Compile Include="Chessman.cs" />
+    <Compile Include="Attributes.cs" />
     <Compile Include="Point.cs" />
     <Compile Include="PlayGround.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

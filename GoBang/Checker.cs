@@ -4,6 +4,23 @@ namespace GoBang
 {
     public class Checker
     {
+        private class Step
+        {
+            public Step(int leftX, int leftY, int rightX, int rightY)
+            {
+                LeftX = leftX;
+                LeftY = leftY;
+                RightX = rightX;
+                RightY = rightY;
+            }
+
+            public int LeftX { get; }
+            public int LeftY { get; }
+            public int RightX { get; }
+            public int RightY { get; }
+
+        }
+
         private readonly Point[,] _chessBoard;
         public Checker(Point[,] chessBoard)
         {
@@ -16,238 +33,89 @@ namespace GoBang
             var horizontalWinner = CheckHorizontal(coordinate);
             var leadingDiagonalWinner = CheckLeadingDiagonal(coordinate);
             var diagonalWinner = CheckDiagonal(coordinate);
-            if (verticalWinner != Winner.None)
-                return verticalWinner;
-            if (horizontalWinner != Winner.None)
-                return horizontalWinner;
-            if (leadingDiagonalWinner != Winner.None)
-                return leadingDiagonalWinner;
-            return diagonalWinner != Winner.None ? diagonalWinner : Winner.None;
+            return verticalWinner != Winner.None ? verticalWinner :
+                horizontalWinner != Winner.None ? horizontalWinner :
+                leadingDiagonalWinner != Winner.None ? leadingDiagonalWinner :
+                diagonalWinner != Winner.None ? diagonalWinner : Winner.None;
         }
 
+        private static Step ValidateStepLong(string method)
+        {
+            var validator = new Validator();
+            var stepLeft = validator.Validate<LeftStep, Checker, Tuple<int, int>>(method, p => new Tuple<int, int>(p.StepX, p.StepY));
+            var stepRight = validator.Validate<RightStep, Checker, Tuple<int, int>>(method, p => new Tuple<int, int>(p.StepX, p.StepY));
+            return new Step(stepLeft.Item1, stepLeft.Item2, stepRight.Item1, stepRight.Item2);
+        }
+
+        private Winner Check(Point coordinate, Step stepLong, Chessman chessman)
+        {
+            var count = 0;
+            var up = coordinate;
+            // check the right side from self's coordinate
+            while (up.X <= 14 && up.Y <= 14 && up.Chessman == chessman)
+            {
+                if (count == 5)
+                    return chessman == Chessman.White ? Winner.White : Winner.Black;
+                count++;
+                try
+                {
+                    up = _chessBoard.GetPoint(up.X + stepLong.RightX, up.Y + stepLong.RightY);
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    break;
+                }
+            }
+
+            up = coordinate;
+            // check the left side from self's coordinate
+            while (up.X >= 0 && up.Y >= 0 && up.Chessman == Chessman.White)
+            {
+                if (count == 5)
+                    return chessman == Chessman.White ? Winner.White : Winner.Black;
+                count++;
+                try
+                {
+                    up = _chessBoard.GetPoint(up.X + stepLong.LeftX, up.Y + stepLong.LeftY);
+                }
+                catch (IndexOutOfRangeException)
+                {
+                    break;
+                }
+            }
+
+            return Winner.None;
+        }
+
+        private Winner CheckBoth(Point coordinate, string validateMethod)
+        {
+            var stepLong = ValidateStepLong(validateMethod);
+            return Check(coordinate, stepLong, Chessman.White) == Winner.White ? Winner.White :
+                Check(coordinate, stepLong, Chessman.Black) == Winner.Black ? Winner.Black : Winner.None;
+        }
+
+        [LeftStep(0, -1), RightStep(0, 1)]
         private Winner CheckVertical(Point coordinate)
         {
-            var white = 0;
-            var black = 0;
-            var up = coordinate;
-            switch (coordinate.Chessman)
-            {
-                case Chessman.White:
-                    while (up.X <= 14 && up.Y <= 14 && up.Chessman == Chessman.White)
-                    {
-                        if (white == 5)
-                            return Winner.White;
-                        white++;
-                        if (up.Y + 1 > 14) break;
-                        up = _chessBoard.GetPoint(up.X, up.Y + 1);
-                    }
-
-                    up = coordinate;
-                    while (up.X >= 0 && up.Y >= 0 && up.Chessman == Chessman.White)
-                    {
-                        if (white == 5)
-                            return Winner.White;
-                        white++;
-                        if (up.Y - 1 < 0) break;
-                        up = _chessBoard.GetPoint(up.X, up.Y - 1);
-                    }
-
-                    break;
-                case Chessman.Black:
-                    while (up.X <= 14 && up.Y <= 14 && up.Chessman == Chessman.Black)
-                    {
-                        if (black == 5)
-                            return Winner.Black;
-                        black++;
-                        if (up.Y + 1 > 14) break;
-                        up = _chessBoard.GetPoint(up.X, up.Y + 1);
-                    }
-                    up = coordinate;
-                    while (up.X >= 0 && up.Y >= 0 && up.Chessman == Chessman.Black)
-                    {
-                        if (black == 5)
-                            return Winner.Black;
-                        black++;
-                        if (up.Y - 1 < 0) break;
-                        up = _chessBoard.GetPoint(up.X, up.Y - 1);
-                    }
-
-                    break;
-                case Chessman.Empty:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            return Winner.None;
+            return CheckBoth(coordinate, "CheckVertical");
         }
 
+        [LeftStep(-1, 0), RightStep(1, 0)]
         private Winner CheckHorizontal(Point coordinate)
         {
-            var white = 0;
-            var black = 0;
-            var up = coordinate;
-            switch (coordinate.Chessman)
-            {
-                case Chessman.White:
-                    while (up.X <= 14 && up.Y <= 14 && up.Chessman == Chessman.White)
-                    {
-                        white++;
-                        if (white == 5)
-                            return Winner.White;
-                        if (up.X + 1 > 14) break;
-                        up = _chessBoard.GetPoint(up.X + 1, up.Y);
-                    }
-                    up = coordinate;
-                    while (up.X >= 0 && up.Y >= 0 && up.Chessman == Chessman.White)
-                    {
-                        white++;
-                        if (white == 5)
-                            return Winner.White;
-                        if (up.X - 1 < 0) break;
-                        up = _chessBoard.GetPoint(up.X - 1, up.Y);
-                    }
-
-                    break;
-                case Chessman.Black:
-                    while (up.X <= 14 && up.Y <= 14 && up.Chessman == Chessman.Black)
-                    {
-                        if (black == 5)
-                            return Winner.Black;
-                        black++;
-                        if (up.X + 1 > 14) break;
-                        up = _chessBoard.GetPoint(up.X + 1, up.Y);
-                    }
-                    up = coordinate;
-                    while (up.X >= 0 && up.Y >= 0 && up.Chessman == Chessman.Black)
-                    {
-                        if (black == 5)
-                            return Winner.Black;
-                        black++;
-                        if (up.X - 1 < 0) break;
-                        up = _chessBoard.GetPoint(up.X - 1, up.Y);
-                    }
-
-                    break;
-                case Chessman.Empty:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            return Winner.None;
+            return CheckBoth(coordinate, "CheckHorizontal");
         }
 
+        [LeftStep(1, -1), RightStep(-1, 1)]
         private Winner CheckLeadingDiagonal(Point coordinate)
         {
-            var white = 0;
-            var black = 0;
-            var up = coordinate;
-            switch (coordinate.Chessman)
-            {
-                case Chessman.White:
-                    while (up.X <= 14 && up.Y <= 14 && up.Chessman == Chessman.White)
-                    {
-                        if (white == 5)
-                            return Winner.White;
-                        white++;
-                        if (up.X - 1 < 0 || up.Y + 1 > 14) break;
-                        up = _chessBoard.GetPoint(up.X - 1, up.Y + 1);
-                    }
-                    up = coordinate;
-                    while (up.X >= 0 && up.Y >= 0 && up.Chessman == Chessman.White)
-                    {
-                        if (white == 5)
-                            return Winner.White;
-                        white++;
-                        if (up.X + 1 > 14 || up.Y - 1 < 0) break;
-                        up = _chessBoard.GetPoint(up.X + 1, up.Y - 1);
-                    }
-
-                    break;
-                case Chessman.Black:
-                    while (up.X <= 14 && up.Y <= 14 && up.Chessman == Chessman.Black)
-                    {
-                        if (black == 5)
-                            return Winner.Black;
-                        black++;
-                        if (up.X - 1 < 0 || up.Y + 1 > 14) break;
-                        up = _chessBoard.GetPoint(up.X - 1, up.Y + 1);
-                    }
-                    up = coordinate;
-                    while (up.X >= 0 && up.Y >= 0 && up.Chessman == Chessman.Black)
-                    {
-                        if (black == 5)
-                            return Winner.Black;
-                        black++;
-                        if (up.X + 1 > 14 || up.Y - 1 < 0) break;
-                        up = _chessBoard.GetPoint(up.X + 1, up.Y - 1);
-                    }
-
-                    break;
-                case Chessman.Empty:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            return Winner.None;
+            return CheckBoth(coordinate, "CheckLeadingDiagonal");
         }
 
+        [LeftStep(-1, -1), RightStep(1, 1)]
         private Winner CheckDiagonal(Point coordinate)
         {
-            var white = 0;
-            var black = 0;
-            var up = coordinate;
-            switch (coordinate.Chessman)
-            {
-                case Chessman.White:
-                    while (up.X <= 14 && up.Y <= 14 && up.Chessman == Chessman.White)
-                    {
-                        if (white == 5)
-                            return Winner.White;
-                        white++;
-                        if (up.X + 1 > 14 || up.Y + 1 > 14) break;
-                        up = _chessBoard.GetPoint(up.X + 1, up.Y + 1);
-                    }
-                    up = coordinate;
-                    while (up.X >= 0 && up.Y >= 0 && up.Chessman == Chessman.White)
-                    {
-                        if (white == 5)
-                            return Winner.White;
-                        white++;
-                        if (up.X - 1 < 0 || up.Y - 1 < 0) break;
-                        up = _chessBoard.GetPoint(up.X - 1, up.Y - 1);
-                    }
-
-                    break;
-                case Chessman.Black:
-                    while (up.X <= 14 && up.Y <= 14 && up.Chessman == Chessman.Black)
-                    {
-                        if (black == 5)
-                            return Winner.Black;
-                        black++;
-                        if (up.X + 1 > 14 || up.Y + 1 > 14) break;
-                        up = _chessBoard.GetPoint(up.X + 1, up.Y + 1);
-                    }
-                    up = coordinate;
-                    while (up.X >= 0 && up.Y >= 0 && up.Chessman == Chessman.Black)
-                    {
-                        if (black == 5)
-                            return Winner.Black;
-                        black++;
-                        if (up.X - 1 < 0 || up.Y - 1 < 0) break;
-                        up = _chessBoard.GetPoint(up.X - 1, up.Y - 1);
-                    }
-
-                    break;
-                case Chessman.Empty:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            return Winner.None;
+            return CheckBoth(coordinate, "CheckDiagonal");
         }
     }
 }

@@ -27,7 +27,7 @@ namespace GoBang
         public string GetChessBoard()
         {
             var stringBuilder = new StringBuilder();
-            for (var i = 0; i < 15; i++)
+            for (var i = 14; i >= 0; i--)
             {
                 for (var j = 0; j < 15; j++)
                     stringBuilder.Append(_chessBoard[i, j].Chessman == Chessman.Black
@@ -113,6 +113,8 @@ namespace GoBang
                     break;
                 }
             }
+            Console.WriteLine("游戏结束");
+            Console.ReadKey();
         }
     }
 }
