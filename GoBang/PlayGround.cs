@@ -94,16 +94,18 @@ namespace GoBang
             else
                 BlackGo(x, y);
 
-            if (Check(_chessBoard.GetPoint(x, y)) == Winner.Black)
+            switch (Check(_chessBoard.GetPoint(x, y)))
             {
-                Console.WriteLine("黑方获胜");
-                return true;
-            }
-
-            if (Check(_chessBoard.GetPoint(x, y)) == Winner.White)
-            {
-                Console.WriteLine("白方获胜");
-                return true;
+                case Winner.Black:
+                    Console.WriteLine("黑方获胜");
+                    return true;
+                case Winner.White:
+                    Console.WriteLine("白方获胜");
+                    return true;
+                case Winner.None:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
             return false;
