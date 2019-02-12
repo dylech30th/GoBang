@@ -83,10 +83,6 @@ namespace GoBang
 
         public string Go(int x, int y)
         {
-            if (CheckChessBoardIsFull())
-            {
-                return "棋盘上已经没有地方了,和棋!";
-            }
             if (CheckPointIsRational(x, y))
             {
                 return "诶呀,您落子的位置好像不太合理,再检查一次吧?";
@@ -147,11 +143,16 @@ namespace GoBang
                 }
                 var x = int.Parse(stringx);
                 var y = int.Parse(stringy);
+                if (playGround.CheckChessBoardIsFull())
+                {
+                    Console.WriteLine("棋盘上已经没有地方了,和棋!");
+                    break;
+                }
                 Console.WriteLine(playGround.Go(x, y));
                 var result = playGround.IsWin(x, y);
                 if (result.IsNullOrEmpty())
                 {
-                    break;                   
+                    break;
                 }
                 Console.WriteLine(result);
             }
