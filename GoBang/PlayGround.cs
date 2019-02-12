@@ -16,7 +16,7 @@ namespace GoBang
         private const char BlackChessman = 'B';
         private const char WhiteChessman = 'W';
         private const char Empty = '—';
-        public Role role;
+        public Role role { get; set; }
 
         public PlayGround()
         {
