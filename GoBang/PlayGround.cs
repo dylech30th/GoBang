@@ -13,17 +13,32 @@ namespace GoBang
     public class PlayGround
     {
         private readonly Point[,] _chessBoard = new Point[15, 15];
-        private const char BlackChessman = 'B';
-        private const char WhiteChessman = 'W';
-        private const char Empty = '—';
+        private string BlackChessman = "B";
+        private string WhiteChessman = "W";
+        private string Empty = "—";
         public Role role { get; set; }
-
-        public PlayGround()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="black">棋盘上黑棋的字符</param>
+        /// <param name="white">棋盘上白棋的字符</param>
+        /// <param name="empty">棋盘上空位的字符</param>
+        public PlayGround(string black, string white, string empty)
         {
+            BlackChessman = black;
+            WhiteChessman = white;
+            Empty = empty;
             RandomizeFirst();
             for (var i = 0; i < 15; i++)
                 for (var j = 0; j < 15; j++)
                     _chessBoard[i, j] = new Point(i, j, Chessman.Empty);
+        }
+        public PlayGround()
+        {
+            RandomizeFirst();
+            for (var i = 0; i < 15; i++)
+            for (var j = 0; j < 15; j++)
+                _chessBoard[i, j] = new Point(i, j, Chessman.Empty);
         }
 
         private void RandomizeFirst()
