@@ -1,28 +1,50 @@
 ﻿using System;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using GammaLibrary.Extensions;
 
 namespace GoBang
 {
+    public enum Role
+    {
+        White,
+        Black
+    }
     public class PlayGround
     {
         private readonly Point[,] _chessBoard = new Point[15, 15];
-        private const char BlackChessman = 'B';
-        private const char WhiteChessman = 'W';
-        private const char Empty = '—';
-        public bool IsWhiteGo;
-
-        public PlayGround()
+        private string BlackChessman = "B";
+        private string WhiteChessman = "W";
+        private string Empty = "—";
+        public Role role { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="black">棋盘上黑棋的字符</param>
+        /// <param name="white">棋盘上白棋的字符</param>
+        /// <param name="empty">棋盘上空位的字符</param>
+        public PlayGround(string black, string white, string empty)
         {
+            BlackChessman = black;
+            WhiteChessman = white;
+            Empty = empty;
             RandomizeFirst();
             for (var i = 0; i < 15; i++)
                 for (var j = 0; j < 15; j++)
                     _chessBoard[i, j] = new Point(i, j, Chessman.Empty);
         }
+        public PlayGround()
+        {
+            RandomizeFirst();
+            for (var i = 0; i < 15; i++)
+            for (var j = 0; j < 15; j++)
+                _chessBoard[i, j] = new Point(i, j, Chessman.Empty);
+        }
 
         private void RandomizeFirst()
         {
             var rnd = new Random().Next(2);
-            IsWhiteGo = rnd == 0;
+            role = rnd == 0 ? Role.White : Role.Black;
         }
 
         public Winner Check(Point coordinate)
@@ -50,13 +72,13 @@ namespace GoBang
 
         public void WhiteGo(int x, int y)
         {
-            IsWhiteGo = false;
+            role = Role.Black;
             _chessBoard[x, y] = new Point(x, y, Chessman.White);
         }
 
         public void BlackGo(int x, int y)
         {
-            IsWhiteGo = true;
+            role = Role.White;
             _chessBoard[x, y] = new Point(x, y, Chessman.Black);
         }
 
@@ -69,46 +91,43 @@ namespace GoBang
             return true;
         }
 
-        public bool Go(int x, int y)
+        public bool CheckPointIsRational(int x, int y)
         {
-            if (x > 14 || y > 14)
+            return x <= 14 && y <= 14 && _chessBoard[x, y].Chessman == Chessman.Empty;
+        }
+
+        public string Go(int x, int y)
+        {
+            if (CheckPointIsRational(x, y))
             {
-                Console.WriteLine("超出棋盘");
-                return false;
+                return "诶呀,您落子的位置好像不太合理,再检查一次吧?";
             }
-
-            if (CheckChessBoardIsFull())
+            switch (role)
             {
-                Console.WriteLine("和棋");
-                return true;
-            }
+                case Role.White:
+                    WhiteGo(x, y);
+                    return "白方成功落子";
+                case Role.Black:
+                    BlackGo(x, y);
+                    return "黑方成功落子";
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }           
+        }
 
-            if (_chessBoard[x, y].Chessman != Chessman.Empty)
-            {
-                Console.WriteLine("已经有棋子了");
-                return false;
-            }
-
-            if (IsWhiteGo)
-                WhiteGo(x, y);
-            else
-                BlackGo(x, y);
-
+        public string IsWin(int x, int y)
+        {
             switch (Check(_chessBoard.GetPoint(x, y)))
             {
                 case Winner.Black:
-                    Console.WriteLine("黑方获胜");
-                    return true;
+                    return "黑方获胜!";
                 case Winner.White:
-                    Console.WriteLine("白方获胜");
-                    return true;
+                    return "白方获胜!";
                 case Winner.None:
-                    break;
+                    return "";
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
-            return false;
         }
 
         public static void Main(string[] args)
@@ -117,20 +136,40 @@ namespace GoBang
             while (true)
             {
                 Console.WriteLine(playGround.GetChessBoard());
-                Console.WriteLine(playGround.IsWhiteGo ? "白方走子" : "黑方走子");
+                switch (playGround.role)
+                {
+                    case Role.Black:
+                        Console.WriteLine("黑方走子");
+                        break;
+                    case Role.White:
+                        Console.WriteLine("白方走子");
+                        break;
+                }
 
                 Console.WriteLine("请输入X");
-                var x = Console.ReadLine();
+                var stringx = Console.ReadLine();
                 Console.WriteLine("请输入Y");
-                var y = Console.ReadLine();
+                var stringy = Console.ReadLine();
 
-                if (!x.IsNumber() || !y.IsNumber() || x == null || y == null)
+                if (!stringx.IsInt() || !stringy.IsInt() || stringx == null || stringy == null)
                 {
                     Console.WriteLine("输入格式非法");
                     continue;
                 }
-
-                if (playGround.Go(int.Parse(x), int.Parse(y))) break;
+                var x = int.Parse(stringx);
+                var y = int.Parse(stringy);
+                if (playGround.CheckChessBoardIsFull())
+                {
+                    Console.WriteLine("棋盘上已经没有地方了,和棋!");
+                    break;
+                }
+                Console.WriteLine(playGround.Go(x, y));
+                var result = playGround.IsWin(x, y);
+                if (result.IsNullOrEmpty())
+                {
+                    break;
+                }
+                Console.WriteLine(result);
             }
             Console.WriteLine("游戏结束");
             Console.ReadKey();
