@@ -97,25 +97,25 @@ namespace GoBang
         [LeftStep(0, -1), RightStep(0, 1)]
         private Winner CheckVertical(Point coordinate)
         {
-            return CheckBoth(coordinate, "CheckVertical");
+            return CheckBoth(coordinate, nameof(CheckVertical));
         }
 
         [LeftStep(-1, 0), RightStep(1, 0)]
         private Winner CheckHorizontal(Point coordinate)
         {
-            return CheckBoth(coordinate, "CheckHorizontal");
+            return CheckBoth(coordinate, nameof(CheckHorizontal));
         }
 
         [LeftStep(1, -1), RightStep(-1, 1)]
         private Winner CheckLeadingDiagonal(Point coordinate)
         {
-            return CheckBoth(coordinate, "CheckLeadingDiagonal");
+            return CheckBoth(coordinate, nameof(CheckLeadingDiagonal));
         }
 
         [LeftStep(-1, -1), RightStep(1, 1)]
         private Winner CheckDiagonal(Point coordinate)
         {
-            return CheckBoth(coordinate, "CheckDiagonal");
+            return CheckBoth(coordinate, nameof(CheckDiagonal));
         }
     }
 }
